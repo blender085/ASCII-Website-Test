@@ -1,35 +1,38 @@
-const express = require("express");
-const multer = require("multer");
-const sharp = require("sharp");
-const path = require("path");
+// server.js
+const express = require('express');
+const multer = require('multer');
+const sharp = require('sharp');
+const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } }); // 15 MB limit
 
-// Multer storage (temporary in memory)
-const upload = multer({ storage: multer.memoryStorage() });
+// Configure CORS: in production set origin to your frontend URL
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*'
+}));
 
-// POST /upload → receive image → convert → send back
-app.post("/upload", upload.single("image"), async (req, res) => {
+app.get('/', (req, res) => res.send('Image grayscale service is running'));
+
+app.post('/upload', upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).send("No file uploaded");
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    // Convert to grayscale using sharp
-    const output = await sharp(req.file.buffer)
+    // Convert to grayscale and return PNG buffer
+    const outputBuffer = await sharp(req.file.buffer)
       .grayscale()
-      .toFormat("png")
+      .png()
       .toBuffer();
 
-    // Send output image
-    res.set("Content-Type", "image/png");
-    res.send(output);
+    res.set('Content-Type', 'image/png');
+    return res.send(outputBuffer);
 
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Server error");
+    console.error('Conversion error:', err);
+    return res.status(500).json({ error: 'Server error during conversion' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Use the Render-provided PORT or fallback to 3000 for local dev
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server listening on port ${port}`));
