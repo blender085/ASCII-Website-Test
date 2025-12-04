@@ -11,7 +11,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } }); // 10MB hard cap
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB hard cap
 
 // helper to write buffer to temporary file
 async function writeTempFile(buffer, ext = '.png') {
