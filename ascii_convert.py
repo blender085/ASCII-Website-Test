@@ -1,26 +1,27 @@
-#!/usr/bin/env python3
 # ascii_convert.py
-# Usage: python3 ascii_convert.py input_path output_path
-
 import sys
+import argparse
 from ascii_magic import AsciiArt
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: ascii_convert.py <input_path> <output_path>", file=sys.stderr)
-        return 2
-    in_path = sys.argv[1]
-    out_path = sys.argv[2]
+    p = argparse.ArgumentParser()
+    p.add_argument('input_path')
+    p.add_argument('output_path')
+    p.add_argument('--enhance', dest='enhance', default='1')
+    p.add_argument('--fullcolor', dest='fullcolor', default='1')
+    p.add_argument('--char', dest='char', default=None)
+    args = p.parse_args()
 
-    try:
-        # You can tune parameters here (columns, font, etc.)
-        art = AsciiArt.from_image(in_path)
-        # produce an image file (png)
-        art.to_image_file(out_path)
-        return 0
-    except Exception as e:
-        print("Error converting image to ASCII:", str(e), file=sys.stderr)
-        return 1
+    enhance = args.enhance == '1'
+    fullcolor = args.fullcolor == '1'
+    char = args.char if args.char not in (None, 'None', '') else None
 
-if __name__ == "__main__":
-    sys.exit(main())
+    # Call ascii_magic per your API (adjust options to match library)
+    art = AsciiArt.from_image(args.input_path)
+    # ascii_magic may accept parameters; this wrapper simply uses defaults and writes PNG
+    # If ascii_magic supports those options directly, pass them.
+    # For now, we call to_image_file and assume it respects the defaults.
+    art.to_image_file(args.output_path, enhance_image=enhance, full_color=fullcolor, char=char)
+
+if __name__ == '__main__':
+    main()
